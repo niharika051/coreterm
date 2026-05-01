@@ -1,109 +1,64 @@
 import re
-import spacy
+import math
+import nltk
 import unicodedata
 from collections import Counter
 
-nlp = spacy.load("en_core_web_sm")
-STOPWORDS = nlp.Defaults.stop_words
+nltk.download('punkt', quiet=True)
+nltk.download('averaged_perceptron_tagger', quiet=True)
+nltk.download('punkt_tab', quiet=True)
+nltk.download('averaged_perceptron_tagger_eng', quiet=True)
 
 def clean_text(text: str) -> str:
     text = unicodedata.normalize("NFKD", text)
-
     lines = text.split("\n")
-
     normalized_lines = []
-
     for line in lines:
         line = line.strip().lower()
         line = re.sub(r"\s+", " ", line)
         if line:
             normalized_lines.append(line)
-
     line_counts = Counter(normalized_lines)
-
-    cleaned_lines = []
-
-    for line in normalized_lines:
-        if line_counts[line] < 12:
-            cleaned_lines.append(line)
-
+    cleaned_lines = [line for line in normalized_lines if line_counts[line] < 12]
     text = " ".join(cleaned_lines)
-
     text = re.sub(r"-\s+", "", text)
     text = re.sub(r"\b\d+\b", " ", text)
-
-    text = text.replace("fourierer", "fourier")
-    text = text.replace("fouri", "fourier")
-    text = text.replace("sery", "series")
-    text = text.replace("low-pas", "low-pass")
-    text = text.replace("gaus", "gauss")
-    text = text.replace("unambiguou", "unambiguous")
-    text = text.replace("thi ", "")
-    text = text.replace("netvvork", "network")
-    text = text.replace("wirelesss", "wireless")
-
     text = re.sub(r"\[\d+\]", " ", text)
     text = re.sub(r"\(\d+\)", " ", text)
-
     text = re.sub(r"\s*-\s*", " ", text)
     text = re.sub(r"\s+", " ", text)
-
     return text.strip()
 
 def extract_noun_phrases(text: str, chunk_size: int = 50000):
-
     candidates = []
-
-    junk_tokens = {
-        "figure", "part", "ed", "appendix",
-        "problem", "repeat", "section",
-        "page", "chapter"
-    }
-
-    weak_prefixes = {
-        "this", "these", "that"
-    }
+    junk_tokens = {"figure","part","ed","appendix","problem","section","page","chapter"}
+    weak_prefixes = {"this","these","that"}
 
     for i in range(0, len(text), chunk_size):
-
-        chunk_text = text[i:i + chunk_size]
-
+        chunk = text[i:i+chunk_size]
         try:
-            doc = nlp(chunk_text)
+            tokens = nltk.word_tokenize(chunk)
+            tagged = nltk.pos_tag(tokens)
         except:
             continue
 
-        for chunk in doc.noun_chunks:
-
-            if chunk.root.pos_ != "NOUN":
-                continue
-
-            phrase = chunk.text.strip().lower()
-            phrase = re.sub(r"[^a-z0-9\s-]", "", phrase)
-
-            tokens = phrase.split()
-
-            if len(tokens) < 2 or len(tokens) > 4:
-                continue
-
-            if tokens[0] in weak_prefixes:
-                continue
-
-            if any(t in junk_tokens for t in tokens):
-                continue
-
-            if any(len(t) == 1 for t in tokens):
-                continue
-
-            if any(t.isdigit() for t in tokens):
-                continue
-
-            if "and" in tokens:
-                continue
-
-            if len(phrase) < 5:
-                continue
-
-            candidates.append(phrase)
+        phrase = []
+        for word, tag in tagged:
+            if tag in ("NN","NNS","NNP","NNPS","JJ"):
+                phrase.append(word.lower())
+            else:
+                if 2 <= len(phrase) <= 4:
+                    p = " ".join(phrase)
+                    p = re.sub(r"[^a-z0-9\s-]", "", p)
+                    words = p.split()
+                    if (len(words) >= 2
+                        and words[0] not in weak_prefixes
+                        and not any(t in junk_tokens for t in words)
+                        and not any(len(t)==1 for t in words)
+                        and not any(t.isdigit() for t in words)
+                        and "and" not in words
+                        and len(p) >= 5):
+                        candidates.append(p)
+                phrase = []
 
     return candidates

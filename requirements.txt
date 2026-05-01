@@ -1,17 +1,13 @@
-# Core
-streamlit==1.37.0
-numpy==1.26.4
-pandas==2.2.2
-scikit-learn==1.3.0
-PyYAML==6.0.2
-tqdm==4.66.1
+streamlit
 
-# NLP (lightweight)
-nltk==3.9.0
-spacy==3.7.4
-sentencepiece==0.1.99
+pandas
+numpy
+scikit-learn
+PyYAML
 
-# Text extraction
-pdfminer.six==20221105
-python-docx==0.8.11
-python-pptx==0.6.21
+nltk
+tqdm
+
+pdfminer.six
+python-docx
+python-pptx

@@ -1,0 +1,30 @@
+# Core Model Dependencies
+transformers==4.36.2
+datasets==2.19.0
+torch==2.1.0
+torchvision==0.16.0
+torchaudio==2.1.0
+scikit-learn==1.3.0
+nltk==3.9.0
+sentencepiece==0.1.99
+tqdm==4.66.1
+
+# Text extraction
+pdfminer.six==20221105
+python-docx==0.8.11
+python-pptx==0.6.21
+
+# Streamlit UI
+streamlit==1.37.0
+
+# Linguistic phrase extraction
+spacy==3.7.4
+# python -m spacy download en_core_web_sm (run manually)
+
+# Optional audio transcription
+openai-whisper==20231117
+
+# Utilities
+PyYAML==6.0.2
+numpy==1.26.4
+pandas==2.2.2
